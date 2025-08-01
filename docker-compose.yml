@@ -17,8 +17,47 @@ services:
     networks:
       - project-network
 
+  # MySQL Database
+  mysql:
+    image: mysql:8.0
+    container_name: mysql_db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: digivo_db
+      MYSQL_USER: digivo_user
+      MYSQL_PASSWORD: digivo_password
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./project2/database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - project-network
+
+  # Project2 - Order management with TypeScript
+  project2:
+    build:
+      context: ./project2
+      dockerfile: Dockerfile
+    container_name: project2
+    ports:
+      - "5001:5001"
+    environment:
+      - NODE_ENV=development
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_USER=digivo_user
+      - DB_PASSWORD=digivo_password
+      - DB_NAME=digivo_db
+    depends_on:
+      - mysql
+    networks:
+      - project-network
+
 volumes:
   project1_uploads:
+  mysql_data:
 
 networks:
   project-network:
